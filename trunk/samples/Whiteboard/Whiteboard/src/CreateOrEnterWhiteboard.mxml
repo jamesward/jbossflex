@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Panel xmlns:fx="http://ns.adobe.com/mxml/2009" 
+         xmlns:s="library://ns.adobe.com/flex/spark" 
+         xmlns:mx="library://ns.adobe.com/flex/mx"
+         title="Create or Enter a Whiteboard">
+  
+  <fx:Metadata>
+    [Event(name="whiteboardSelected", type="org.jboss.demo.whiteboard.WhiteboardEvent")]
+  </fx:Metadata>
+  
+  <fx:Script>
+    import mx.controls.Alert;
+    
+    import org.jboss.demo.whiteboard.WhiteboardEvent;
+    import org.jboss.demo.whiteboard.AttendeeDTO;
+  </fx:Script>
+  
+  <fx:Declarations>
+    <s:RemoteObject id="ro" destination="WhiteboardService" endpoint="messagebroker/amf">
+      <s:result>
+        Model.getInstance().attendee = event.result as AttendeeDTO;
+        dispatchEvent(new WhiteboardEvent("whiteboardSelected", Model.getInstance().attendee.whiteboard));
+      </s:result>
+      <s:fault>
+        Alert.show(event.fault.message, "Error");
+      </s:fault>
+    </s:RemoteObject>
+  </fx:Declarations>
+  
+  <s:layout>
+    <s:VerticalLayout gap="10"/>
+  </s:layout>
+  
+    <mx:FormItem label="Your Display Name" required="true" paddingBottom="10" paddingLeft="10" paddingRight="10" paddingTop="10">
+      <s:TextInput id="userDisplayName"/>
+    </mx:FormItem>
+    
+    <mx:Accordion width="100%" height="100%" borderStyle="none">
+      <mx:VBox label="Create new Whiteboard" paddingBottom="10" paddingLeft="10" paddingRight="10" paddingTop="10" width="100%" height="100%">
+        <mx:FormItem label="Name" width="100%">
+          <s:TextInput id="whiteboardName" width="100%">
+            <s:enter>
+              ro.createWhiteboard(whiteboardName.text, userDisplayName.text);
+            </s:enter>
+          </s:TextInput>
+        </mx:FormItem>
+        
+        <s:Button label="Create Whiteboard">
+          <s:click>
+            ro.createWhiteboard(whiteboardName.text, userDisplayName.text);
+          </s:click>
+        </s:Button>
+      </mx:VBox>
+      <mx:VBox label="Enter an existing whiteboard" paddingBottom="10" paddingLeft="10" paddingRight="10" paddingTop="10" width="100%" height="100%">
+        <mx:FormItem label="Password" width="100%">
+          <s:TextInput id="whiteboardPassword" width="100%">
+            <s:enter>
+              ro.connectToWhiteboard(whiteboardPassword.text, userDisplayName.text);
+            </s:enter>
+          </s:TextInput>
+        </mx:FormItem>
+        
+        <s:Button label="Enter Whiteboard">
+          <s:click>
+            ro.connectToWhiteboard(whiteboardPassword.text, userDisplayName.text);
+          </s:click>
+        </s:Button>
+      </mx:VBox>
+    </mx:Accordion>
+  
+</s:Panel>
