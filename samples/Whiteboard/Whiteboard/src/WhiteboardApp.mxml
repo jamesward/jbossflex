@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009" 
+               xmlns:s="library://ns.adobe.com/flex/spark" 
+               xmlns:mx="library://ns.adobe.com/flex/mx"
+               xmlns:local="*">
+  
+  <fx:Script>
+    import mx.messaging.messages.AsyncMessage;
+  </fx:Script>
+  
+  <fx:Declarations>
+    <s:Producer id="attendeeListChange" destination="attendeeListChange"/>
+    <s:RemoteObject id="ro" destination="WhiteboardService" endpoint="messagebroker/amf">
+      <s:result>
+        attendeeListChange.send(new AsyncMessage());
+        currentState = 'default';
+      </s:result>
+    </s:RemoteObject>
+  </fx:Declarations>
+  
+  <s:applicationComplete>
+    attendeeListChange.channelSet = Config.getInstance().messagingChannelSet;
+    
+    this.currentState = "default";
+  </s:applicationComplete>
+  
+  <s:states>
+    <s:State name="default"/>
+    <s:State name="connectedToWhiteboard"/>
+  </s:states>
+  
+  <local:CreateOrEnterWhiteboard includeIn="default" horizontalCenter="0" verticalCenter="0">
+    <local:whiteboardSelected>
+      attendeeListChange.subtopic = event.whiteboard.id;
+      attendeeListChange.send(new AsyncMessage());
+      currentState = "connectedToWhiteboard";
+      drawingBoard.whiteboard = event.whiteboard;
+    </local:whiteboardSelected>
+  </local:CreateOrEnterWhiteboard>
+      
+  <local:DrawingBoard id="drawingBoard" includeIn="connectedToWhiteboard" width="100%" height="100%">
+    <local:exit>
+      ro.disconnectFromWhiteboard(Model.getInstance().attendee);
+    </local:exit>
+  </local:DrawingBoard>
+</s:Application>
