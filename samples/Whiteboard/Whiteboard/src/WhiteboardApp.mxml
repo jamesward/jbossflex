@@ -5,7 +5,12 @@
                xmlns:local="*">
   
   <fx:Script>
+    import mx.controls.Alert;
+    import mx.events.BrowserChangeEvent;
+    import mx.managers.BrowserManager;
     import mx.messaging.messages.AsyncMessage;
+    import mx.utils.ObjectUtil;
+    import mx.utils.URLUtil;
   </fx:Script>
   
   <fx:Declarations>
@@ -20,8 +25,15 @@
   
   <s:applicationComplete>
     attendeeListChange.channelSet = Config.getInstance().messagingChannelSet;
-    
     this.currentState = "default";
+    
+    BrowserManager.getInstance().init();
+    
+    var o:Object = URLUtil.stringToObject(BrowserManager.getInstance().fragment);
+    if (o.whiteboardId != undefined)
+    {
+      ce.whiteboardId = o.whiteboardId;
+    }    
   </s:applicationComplete>
   
   <s:states>
@@ -29,7 +41,7 @@
     <s:State name="connectedToWhiteboard"/>
   </s:states>
   
-  <local:CreateOrEnterWhiteboard includeIn="default" horizontalCenter="0" verticalCenter="0">
+  <local:CreateOrEnterWhiteboard id="ce" includeIn="default" horizontalCenter="0" verticalCenter="0">
     <local:whiteboardSelected>
       attendeeListChange.subtopic = event.whiteboard.id;
       attendeeListChange.send(new AsyncMessage());

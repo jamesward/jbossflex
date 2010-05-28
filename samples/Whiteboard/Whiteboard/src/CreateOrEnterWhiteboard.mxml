@@ -11,8 +11,22 @@
   <fx:Script>
     import mx.controls.Alert;
     
-    import org.jboss.demo.whiteboard.WhiteboardEvent;
     import org.jboss.demo.whiteboard.AttendeeDTO;
+    import org.jboss.demo.whiteboard.WhiteboardEvent;
+    
+    private var _whiteboardId:String;
+    
+    public function set whiteboardId(whiteboardId:String):void
+    {
+      a.selectedIndex = 1;
+      _whiteboardId = whiteboardId;
+    }
+    
+    [Bindable]
+    public function get whiteboardId():String
+    {
+      return _whiteboardId;
+    }
   </fx:Script>
   
   <fx:Declarations>
@@ -35,7 +49,7 @@
       <s:TextInput id="userDisplayName"/>
     </mx:FormItem>
     
-    <mx:Accordion width="100%" height="100%" borderStyle="none">
+    <mx:Accordion id="a" width="100%" height="100%" borderStyle="none">
       <mx:VBox label="Create new Whiteboard" paddingBottom="10" paddingLeft="10" paddingRight="10" paddingTop="10" width="100%" height="100%">
         <mx:FormItem label="Name" width="100%">
           <s:TextInput id="whiteboardName" width="100%">
@@ -53,7 +67,7 @@
       </mx:VBox>
       <mx:VBox label="Enter an existing whiteboard" paddingBottom="10" paddingLeft="10" paddingRight="10" paddingTop="10" width="100%" height="100%">
         <mx:FormItem label="Password" width="100%">
-          <s:TextInput id="whiteboardPassword" width="100%">
+          <s:TextInput id="whiteboardPassword" width="100%" text="{whiteboardId}">
             <s:enter>
               ro.connectToWhiteboard(whiteboardPassword.text, userDisplayName.text);
             </s:enter>
