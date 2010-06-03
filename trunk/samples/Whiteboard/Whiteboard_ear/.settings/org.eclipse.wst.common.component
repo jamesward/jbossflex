@@ -2,14 +2,14 @@
 <project-modules id="moduleCoreId" project-version="1.5.0">
     <wb-module deploy-name="Whiteboard_ear">
         <wb-resource deploy-path="/" source-path="/EarContent"/>
-        <dependent-module archiveName="Whiteboard_war.war" deploy-path="/" handle="module:/resource/Whiteboard_war/Whiteboard_war">
-            <dependent-object/>
-            <dependency-type>uses</dependency-type>
-        </dependent-module>
         <dependent-module archiveName="Whiteboard_jpa.jar" deploy-path="/" handle="module:/resource/Whiteboard_jpa/Whiteboard_jpa">
             <dependency-type>uses</dependency-type>
         </dependent-module>
         <dependent-module archiveName="Whiteboard_ejb.jar" deploy-path="/" handle="module:/resource/Whiteboard_ejb/Whiteboard_ejb">
+            <dependent-object/>
+            <dependency-type>uses</dependency-type>
+        </dependent-module>
+        <dependent-module archiveName="Whiteboard_war.war" deploy-path="/" handle="module:/resource/Whiteboard_war/Whiteboard_war">
             <dependent-object/>
             <dependency-type>uses</dependency-type>
         </dependent-module>
