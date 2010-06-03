@@ -3,15 +3,21 @@ package org.jboss.demo.whiteboard;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.persistence.Cacheable;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.OneToMany;
 import javax.persistence.Id;
+import javax.persistence.OrderBy;
 
+import org.hibernate.annotations.Cache;
+import org.hibernate.annotations.CacheConcurrencyStrategy;
 import org.hibernate.annotations.GenericGenerator;
 
 @Entity
+@Cacheable
+@Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
 public class Whiteboard
 {
   
@@ -53,6 +59,7 @@ public class Whiteboard
   }
   
   @OneToMany(mappedBy="whiteboard", fetch=FetchType.EAGER)
+  @OrderBy("id")
   public List<Draw> getDraws()
   {
     return draws;
