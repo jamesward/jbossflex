@@ -1,9 +1,10 @@
 package org.jboss.demo.whiteboard;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.OneToMany;
 import javax.persistence.Id;
@@ -16,11 +17,13 @@ public class Whiteboard
   
   private String id;
   private String name;
-  private Set<Attendee> attendees = new HashSet<Attendee>();
+  private List<Attendee> attendees = new ArrayList<Attendee>();
+  private List<Draw> draws = new ArrayList<Draw>();
 
+  
   @Id
-  @GeneratedValue(generator="UUIDKeyGenerator")
-  @GenericGenerator(name="UUIDKeyGenerator", strategy="org.jboss.demo.whiteboard.UUIDKeyGenerator")
+  @GeneratedValue(generator="UUIDKeyGenerator_Whiteboard")
+  @GenericGenerator(name="UUIDKeyGenerator_Whiteboard", strategy="org.jboss.demo.whiteboard.UUIDKeyGenerator")
   public String getId()
   {
     return id;
@@ -40,13 +43,23 @@ public class Whiteboard
   }
   
   @OneToMany(mappedBy="whiteboard")
-  public Set<Attendee> getAttendees()
+  public List<Attendee> getAttendees()
   {
     return attendees;
   }
-  public void setAttendees(Set<Attendee> attendees)
+  public void setAttendees(List<Attendee> attendees)
   {
     this.attendees = attendees;
+  }
+  
+  @OneToMany(mappedBy="whiteboard", fetch=FetchType.EAGER)
+  public List<Draw> getDraws()
+  {
+    return draws;
+  }
+  public void setDraws(List<Draw> draws)
+  {
+    this.draws = draws;
   }
   
 }
