@@ -9,5 +9,6 @@ package org.jboss.demo.whiteboard
     public var id:String;
     public var name:String
     public var attendeeNames:ArrayCollection;
+	  public var draws:ArrayCollection;
   }
 }

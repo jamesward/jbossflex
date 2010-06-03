@@ -19,8 +19,9 @@ package
       var pollingChannel:AMFChannel = new AMFChannel();
       pollingChannel.pollingEnabled = true;
       pollingChannel.url = "messagebroker/amfpolling";
+      pollingChannel.pollingInterval = 5000;
       
-      messagingChannelSet.addChannel(streamingChannel);
+      messagingChannelSet.addChannel(pollingChannel);
     }
     
     private static var instance:Config;
