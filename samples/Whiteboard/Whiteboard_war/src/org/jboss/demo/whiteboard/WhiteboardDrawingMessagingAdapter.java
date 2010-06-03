@@ -1,6 +1,5 @@
 package org.jboss.demo.whiteboard;
 
-import javax.ejb.EJB;
 import javax.naming.Context;
 import javax.naming.InitialContext;
 
