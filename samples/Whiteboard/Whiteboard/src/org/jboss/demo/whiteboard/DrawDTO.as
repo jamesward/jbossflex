@@ -12,6 +12,7 @@ package org.jboss.demo.whiteboard
       this.y2 = y2;
     }
     
+	public var id:uint;
     public var drawColor:uint;
     public var x1:int;
     public var y1:int;
