@@ -26,8 +26,8 @@ public class Attendee
   }
   
   @Id
-  @GeneratedValue(generator="UUIDKeyGenerator")
-  @GenericGenerator(name="UUIDKeyGenerator", strategy="org.jboss.demo.whiteboard.UUIDKeyGenerator")
+  @GeneratedValue(generator="UUIDKeyGenerator_Attendee")
+  @GenericGenerator(name="UUIDKeyGenerator_Attendee", strategy="org.jboss.demo.whiteboard.UUIDKeyGenerator")
   public String getId()
   {
     return id;
