@@ -2,12 +2,36 @@ package org.jboss.demo.whiteboard;
 
 public class DrawDTO
 {
-  
+  private long id;
   private long drawColor;
   private int x1;
   private int y1;
   private int x2;
   private int y2;
+  
+  public DrawDTO()
+  {
+    
+  }
+  
+  public DrawDTO(Draw draw)
+  {
+    this.id = draw.getId();
+    this.drawColor = draw.getDrawColor();
+    this.x1 = draw.getX1();
+    this.y1 = draw.getY1();
+    this.x2 = draw.getX2();
+    this.y2 = draw.getY2();
+  }
+  
+  public long getId()
+  {
+    return id;
+  }
+  public void setId(long id)
+  {
+    this.id = id;
+  }
   
   public long getDrawColor()
   {
@@ -17,6 +41,7 @@ public class DrawDTO
   {
     this.drawColor = drawColor;
   }
+  
   public int getX1()
   {
     return x1;
@@ -25,6 +50,7 @@ public class DrawDTO
   {
     this.x1 = x1;
   }
+  
   public int getY1()
   {
     return y1;
@@ -33,6 +59,7 @@ public class DrawDTO
   {
     this.y1 = y1;
   }
+  
   public int getX2()
   {
     return x2;
@@ -41,6 +68,7 @@ public class DrawDTO
   {
     this.x2 = x2;
   }
+  
   public int getY2()
   {
     return y2;

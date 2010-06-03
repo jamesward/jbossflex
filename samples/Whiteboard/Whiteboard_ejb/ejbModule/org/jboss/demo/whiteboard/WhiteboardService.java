@@ -1,7 +1,12 @@
 package org.jboss.demo.whiteboard;
 
+import java.util.HashMap;
+import java.util.ArrayList;
+import java.util.Iterator;
+
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
+import javax.persistence.NoResultException;
 import javax.persistence.PersistenceContext;
 
 /**
@@ -29,9 +34,16 @@ public class WhiteboardService implements WhiteboardServiceLocal
   
   public AttendeeDTO connectToWhiteboard(String whiteboardId, String userDisplayName)
   {
-    Whiteboard whiteboard = (Whiteboard)entityManager.createQuery("from Whiteboard where id = :whiteboardId")
-    .setParameter("whiteboardId", whiteboardId)
-    .getSingleResult();
+    Whiteboard whiteboard;
+    
+    try
+    {
+      whiteboard = getWhiteboardFromId(whiteboardId);
+    }
+    catch (NoResultException e)
+    {
+      return createWhiteboard("new whiteboard", userDisplayName);
+    }
     
     Attendee attendee = new Attendee(userDisplayName);
     attendee.setWhiteboard(whiteboard);
@@ -48,11 +60,46 @@ public class WhiteboardService implements WhiteboardServiceLocal
   
   public WhiteboardDTO getWhiteboard(String whiteboardId)
   {
+    Whiteboard whiteboard = getWhiteboardFromId(whiteboardId);
+    
+    return new WhiteboardDTO(whiteboard);
+  }
+  
+  public void drawOnWhiteboard(String whiteboardId, DrawDTO drawDTO)
+  {
+    Whiteboard whiteboard = getWhiteboardFromId(whiteboardId);
+    
+    Draw draw = new Draw();
+    draw.setDrawColor(drawDTO.getDrawColor());
+    draw.setX1(drawDTO.getX1());
+    draw.setY1(drawDTO.getY1());
+    draw.setX2(drawDTO.getX2());
+    draw.setY2(drawDTO.getY2());
+    draw.setWhiteboard(whiteboard);
+    
+    entityManager.persist(draw);
+  }
+  
+  public void eraseWhiteboard(String whiteboardId)
+  {
+    Whiteboard whiteboard = getWhiteboardFromId(whiteboardId);
+    
+    Iterator<Draw> d = whiteboard.getDraws().iterator();
+    while (d.hasNext())
+    {
+      entityManager.remove(d.next());
+    }
+    
+    whiteboard.setDraws(new ArrayList<Draw>());
+  }
+
+  private Whiteboard getWhiteboardFromId(String whiteboardId)
+  {
     Whiteboard whiteboard = (Whiteboard)entityManager.createQuery("from Whiteboard where id = :whiteboardId")
     .setParameter("whiteboardId", whiteboardId)
     .getSingleResult();
     
-    return new WhiteboardDTO(whiteboard);
+    return whiteboard;
   }
 
 }

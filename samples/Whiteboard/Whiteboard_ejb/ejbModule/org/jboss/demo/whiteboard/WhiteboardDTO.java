@@ -1,8 +1,8 @@
 package org.jboss.demo.whiteboard;
 
-import java.util.HashSet;
+import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.Set;
+import java.util.List;
 
 
 public class WhiteboardDTO
@@ -10,8 +10,10 @@ public class WhiteboardDTO
   
   private String id;
   private String name;
-  private Set<String> attendeeNames = new HashSet<String>();
+  private List<String> attendeeNames = new ArrayList<String>();
+  private List<DrawDTO> draws = new ArrayList<DrawDTO>();
   
+
   public WhiteboardDTO()
   {
     
@@ -27,6 +29,12 @@ public class WhiteboardDTO
     {
       attendeeNames.add(i.next().getDisplayName());
     }
+    
+    Iterator<Draw> d = whiteboard.getDraws().iterator();
+    while (d.hasNext())
+    {
+      draws.add(new DrawDTO(d.next()));
+    }
   }
   
   public String getId()
@@ -37,6 +45,7 @@ public class WhiteboardDTO
   {
     this.id = id;
   }
+  
   public String getName()
   {
     return name;
@@ -45,13 +54,23 @@ public class WhiteboardDTO
   {
     this.name = name;
   }
-  public Set<String> getAttendeeNames()
+  
+  public List<String> getAttendeeNames()
   {
     return attendeeNames;
   }
-  public void setAttendeeNames(Set<String> attendeeNames)
+  public void setAttendeeNames(List<String> attendeeNames)
   {
     this.attendeeNames = attendeeNames;
+  }
+  
+  public List<DrawDTO> getDraws()
+  {
+	return draws;
+  }
+  public void setDraws(List<DrawDTO> draws)
+  {
+	this.draws = draws;
   }
 
 }
