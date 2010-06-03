@@ -4,6 +4,7 @@
 
     <adapters>
         <adapter-definition id="actionscript" class="flex.messaging.services.messaging.adapters.ActionScriptAdapter" default="true" />
+        <adapter-definition id="whiteboardDrawingMessagingAdapter" class="org.jboss.demo.whiteboard.WhiteboardDrawingMessagingAdapter"/>
         <!-- <adapter-definition id="jms" class="flex.messaging.services.messaging.adapters.JMSAdapter"/> -->
     </adapters>
 
@@ -23,6 +24,7 @@
     </destination>
     
     <destination id="whiteboardDrawing">
+    	<adapter ref="whiteboardDrawingMessagingAdapter"/>
     	<properties>
             <server>
                 <allow-subtopics>true</allow-subtopics>
