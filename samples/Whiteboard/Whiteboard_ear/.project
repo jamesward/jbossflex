@@ -3,9 +3,9 @@
 	<name>Whiteboard_ear</name>
 	<comment></comment>
 	<projects>
-		<project>Whiteboard_war</project>
-		<project>Whiteboard_jpa</project>
 		<project>Whiteboard_ejb</project>
+		<project>Whiteboard_jpa</project>
+		<project>Whiteboard_war</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>
