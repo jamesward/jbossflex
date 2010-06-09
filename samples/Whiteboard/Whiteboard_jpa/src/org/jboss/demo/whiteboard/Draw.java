@@ -16,6 +16,7 @@ public class Draw
   private int x2;
   private int y2;
   private Whiteboard whiteboard;
+  private int version = 0;
   
   
   @Id
@@ -83,5 +84,15 @@ public class Draw
   {
     this.whiteboard = whiteboard;
   }
+
+  public int getVersion() {
+	return version;
+  }
+
+  public void setVersion(int version) {
+	this.version = version;
+  }
+  
+  
 
 }
