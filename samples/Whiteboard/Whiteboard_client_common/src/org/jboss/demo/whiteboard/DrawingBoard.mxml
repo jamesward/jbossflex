@@ -1,0 +1,175 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
+         xmlns:s="library://ns.adobe.com/flex/spark" 
+         xmlns:mx="library://ns.adobe.com/flex/mx"
+         xmlns:whiteboard="org.jboss.demo.whiteboard.*">
+  
+  <!--
+  When the size of the owner's DrawingBoard changes broadcast the change to all who are connected to the DrawingBoard
+  -->
+  
+  <!--
+  Upload an image to this board
+  -->
+  
+  <!--
+  View Whiteboard history
+  -->
+  
+  <!--
+  Share Whiteboard
+  -->
+  
+  <fx:Metadata>
+    [Event("exit")]
+  </fx:Metadata>  
+
+  <fx:Script>
+      import mx.controls.Alert;
+      import mx.messaging.messages.AsyncMessage;
+      
+      
+      private var _whiteboard:WhiteboardDTO;
+    
+      public function set whiteboard(_whiteboard:WhiteboardDTO):void
+      {
+        this._whiteboard = _whiteboard;
+        
+		getWhiteboardCR.token = con.whiteboardServiceRemoteObject.getWhiteboard(whiteboard.id);
+        
+        con.attendeeListChangeConsumer.subtopic = whiteboard.id;
+		con.attendeeListChangeConsumer.subscribe();
+        
+        con.whiteboardDrawingConsumer.subtopic = whiteboard.id;
+		con.whiteboardDrawingConsumer.subscribe();
+        
+        con.whiteboardDrawingProducer.subtopic = whiteboard.id;
+      }
+    
+      [Bindable]
+      public function get whiteboard():WhiteboardDTO
+      {
+        return _whiteboard;
+      }
+  </fx:Script>
+  
+  <fx:Declarations>
+	<whiteboard:ConnectionHandler id="con">
+		<whiteboard:attendeeListChangeMessage>
+			getWhiteboardCR.token = con.whiteboardServiceRemoteObject.getWhiteboard(whiteboard.id);
+		</whiteboard:attendeeListChangeMessage>
+		<whiteboard:whiteboardDrawingMessage>
+			if (event.message.body.clientId != con.whiteboardDrawingConsumer.clientId)
+			{
+				if (event.message.body.command == "erase")
+				{
+					drawingArea.erase();
+				}
+				else if (event.message.body.command == "draw")
+				{
+					drawingArea.doDraw(event.message.body.draw);
+				}
+			}
+			event.stopImmediatePropagation();
+		</whiteboard:whiteboardDrawingMessage>
+	</whiteboard:ConnectionHandler>
+	  
+	<s:CallResponder id="getWhiteboardCR">
+		<s:result>
+			_whiteboard = event.result as WhiteboardDTO;
+			l.dataProvider = whiteboard.attendeeNames;
+			
+			drawingArea.erase();
+			
+			for each (var draw:DrawDTO in whiteboard.draws)
+			{
+				drawingArea.doDraw(draw);
+			}
+		</s:result>
+	</s:CallResponder>
+	  
+	<s:CallResponder id="exitCR">
+	    <s:result>
+		    con.attendeeListChangeProducer.send(new AsyncMessage());
+			dispatchEvent(new Event('exit'));
+		</s:result>
+	</s:CallResponder>
+  </fx:Declarations>
+  
+  <s:layout>
+    <s:VerticalLayout gap="0"/>
+  </s:layout>
+  
+  <s:Group id="navBar" width="100%" height="50">
+    <s:Rect width="100%" height="100%">
+      <s:fill>
+        <s:LinearGradient rotation="90">
+          <s:GradientEntry color="#dddddd" ratio="0.8"/>
+          <s:GradientEntry color="#aaaaaa" ratio="1"/>
+        </s:LinearGradient>
+      </s:fill>
+    </s:Rect>
+    
+    <s:Label text="Whiteboard: {whiteboard.name}" fontSize="24" fontWeight="bold" top="10" left="10"/>
+    
+    <s:Button label="Share" top="10" right="100">
+      <s:click>
+        Alert.show("Send the other attendees the following password:\n" + whiteboard.id, "Share this Whiteboard");
+      </s:click>
+    </s:Button>
+    
+    <s:Button label="Exit" top="10" right="10">
+      <s:click>
+        con.attendeeListChangeConsumer.unsubscribe();
+		exitCR.token = con.whiteboardServiceRemoteObject.disconnectFromWhiteboard(Model.getInstance().attendee);
+      </s:click>
+    </s:Button>
+  </s:Group>
+  
+  <s:Group width="100%" height="100%">
+    <s:layout>
+      <s:HorizontalLayout gap="0"/>
+    </s:layout>
+    
+    <s:Group id="drawingTools" height="100%">
+      <s:Rect width="100%" height="100%">
+        <s:fill>
+          <s:SolidColor color="#aaaaaa"/>
+        </s:fill>
+      </s:Rect>
+      
+      <s:Group>
+        <s:layout>
+          <s:VerticalLayout paddingTop="10" paddingRight="10" paddingLeft="10" paddingBottom="10"/>
+        </s:layout>
+      
+        <mx:ColorPicker change="drawingArea.drawColor = event.target.selectedColor"/>
+        <s:Button label="Erase">
+          <s:click>
+			con.whiteboardDrawingProducer.send(new AsyncMessage({command: 'erase', clientId: con.whiteboardDrawingConsumer.clientId}));
+            drawingArea.erase();
+          </s:click>
+        </s:Button>
+        <s:Button label="Save Image" click="drawingArea.save()"/>
+        
+        <mx:Spacer height="100%"/>
+        
+        <s:Label text="Attendees"/>
+        <s:List id="l" width="100%"/>
+
+      </s:Group>
+      
+    </s:Group>
+  
+    <whiteboard:DrawingArea id="drawingArea" width="100%" height="100%">
+      <whiteboard:draw>
+        con.whiteboardDrawingProducer.send(new AsyncMessage({command: 'draw', draw: event.draw, clientId: con.whiteboardDrawingConsumer.clientId}));
+        drawingArea.doDraw(event.draw);
+      </whiteboard:draw>
+      <!--
+      Maintain a queue of drawn items and periodically flush them to the server for historical versioning
+      -->
+    </whiteboard:DrawingArea>
+  </s:Group>
+  
+</s:Group>

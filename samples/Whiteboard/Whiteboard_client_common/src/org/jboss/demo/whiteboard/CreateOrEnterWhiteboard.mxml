@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Panel xmlns:fx="http://ns.adobe.com/mxml/2009" 
+         xmlns:s="library://ns.adobe.com/flex/spark" 
+         xmlns:mx="library://ns.adobe.com/flex/mx"
+		 xmlns:whiteboard="org.jboss.demo.whiteboard.*"
+         title="Create or Enter a Whiteboard">
+  
+  <fx:Metadata>
+    [Event(name="whiteboardSelected", type="org.jboss.demo.whiteboard.WhiteboardEvent")]
+  </fx:Metadata>
+  
+  <fx:Script>
+    
+	import mx.messaging.messages.AsyncMessage;
+	import mx.controls.Alert;
+    
+    
+    private var _whiteboardId:String;
+    
+    public function set whiteboardId(whiteboardId:String):void
+    {
+        a.selectedIndex = 1;
+        _whiteboardId = whiteboardId;
+    }
+    
+	[Bindable]
+	public function get whiteboardId():String
+	{
+	    return _whiteboardId;
+	}
+	  
+	private function createWhiteboard():void
+	{
+		cr.token = con.whiteboardServiceRemoteObject.createWhiteboard(whiteboardName.text, userDisplayName.text);
+	}
+	
+	private function connectToWhiteboard():void
+	{
+		cr.token = con.whiteboardServiceRemoteObject.connectToWhiteboard(whiteboardPassword.text, userDisplayName.text);
+	}
+  </fx:Script>
+  
+  <fx:Declarations>
+	<whiteboard:ConnectionHandler id="con"/>
+	<s:CallResponder id="cr">
+		<s:result>
+			Model.getInstance().attendee = event.result as AttendeeDTO;
+			con.attendeeListChangeProducer.subtopic = whiteboardId;
+			con.attendeeListChangeProducer.send(new AsyncMessage());
+			dispatchEvent(new WhiteboardEvent("whiteboardSelected", Model.getInstance().attendee.whiteboard));
+		</s:result>
+	</s:CallResponder>
+  </fx:Declarations>
+  
+  <s:layout>
+    <s:VerticalLayout gap="10"/>
+  </s:layout>
+  
+    <mx:FormItem label="Your Display Name" required="true" paddingBottom="10" paddingLeft="10" paddingRight="10" paddingTop="10">
+      <s:TextInput id="userDisplayName"/>
+    </mx:FormItem>
+    
+    <mx:Accordion id="a" width="100%" height="100%" borderStyle="none">
+      <mx:VBox label="Create new Whiteboard" paddingBottom="10" paddingLeft="10" paddingRight="10" paddingTop="10" width="100%" height="100%">
+        <mx:FormItem label="Name" width="100%">
+          <s:TextInput id="whiteboardName" width="100%">
+            <s:enter>
+				createWhiteboard();
+            </s:enter>
+          </s:TextInput>
+        </mx:FormItem>
+        
+        <s:Button label="Create Whiteboard">
+          <s:click>
+			  createWhiteboard();
+          </s:click>
+        </s:Button>
+      </mx:VBox>
+      <mx:VBox label="Enter an existing whiteboard" paddingBottom="10" paddingLeft="10" paddingRight="10" paddingTop="10" width="100%" height="100%">
+        <mx:FormItem label="Password" width="100%">
+          <s:TextInput id="whiteboardPassword" width="100%" text="{whiteboardId}">
+            <s:enter>
+				connectToWhiteboard();
+            </s:enter>
+          </s:TextInput>
+        </mx:FormItem>
+        
+        <s:Button label="Enter Whiteboard">
+          <s:click>
+			  connectToWhiteboard();
+          </s:click>
+        </s:Button>
+      </mx:VBox>
+    </mx:Accordion>
+  
+</s:Panel>
