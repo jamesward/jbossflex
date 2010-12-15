@@ -1,32 +1,28 @@
 package org.jboss.demo.whiteboard;
 
-import java.util.HashMap;
 import java.util.ArrayList;
 import java.util.Iterator;
 
-import javax.annotation.security.RolesAllowed;
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
 import javax.persistence.PersistenceContext;
 
-import org.jboss.ejb3.annotation.SecurityDomain;
-
 /**
  * Session Bean implementation class WhiteboardService
  */
 @Stateless
-@SecurityDomain("whiteboard")
+//@SecurityDomain("whiteboard")
 public class WhiteboardService implements WhiteboardServiceLocal {
 	@PersistenceContext
 	private EntityManager entityManager;
 
-	@RolesAllowed( { "host" })
+	//@RolesAllowed( { "host" })
 	public void assignDrawer(Attendee attendee) {
 
 	}
 
-	@RolesAllowed( { "host" })
+	//@RolesAllowed( { "host" })
 	public AttendeeDTO createWhiteboard(String whiteboardName,
 			String userDisplayName) {
 		Whiteboard whiteboard = new Whiteboard();
@@ -42,7 +38,7 @@ public class WhiteboardService implements WhiteboardServiceLocal {
 		return new AttendeeDTO(attendee);
 	}
 
-	@RolesAllowed( { "attendee" })
+	//@RolesAllowed( { "attendee" })
 	public AttendeeDTO connectToWhiteboard(String whiteboardId,
 			String userDisplayName) {
 		Whiteboard whiteboard;
@@ -66,14 +62,14 @@ public class WhiteboardService implements WhiteboardServiceLocal {
 				.getId()));
 	}
 
-	@RolesAllowed( { "host,attendee" })
+	//@RolesAllowed( { "host,attendee" })
 	public WhiteboardDTO getWhiteboard(String whiteboardId) {
 		Whiteboard whiteboard = getWhiteboardFromId(whiteboardId);
 
 		return new WhiteboardDTO(whiteboard);
 	}
 
-	@RolesAllowed( { "drawer" })
+	//@RolesAllowed( { "drawer" })
 	public void drawOnWhiteboard(String whiteboardId, DrawDTO drawDTO) {
 		Whiteboard whiteboard = getWhiteboardFromId(whiteboardId);
 
