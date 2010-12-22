@@ -2,95 +2,113 @@
 <s:Panel xmlns:fx="http://ns.adobe.com/mxml/2009" 
          xmlns:s="library://ns.adobe.com/flex/spark" 
          xmlns:mx="library://ns.adobe.com/flex/mx"
-		 xmlns:whiteboard="org.jboss.demo.whiteboard.*"
-         title="Create or Enter a Whiteboard">
+		     xmlns:whiteboard="org.jboss.demo.whiteboard.*"
+         title="Enter a Whiteboard">
   
   <fx:Metadata>
     [Event(name="whiteboardSelected", type="org.jboss.demo.whiteboard.WhiteboardEvent")]
   </fx:Metadata>
   
   <fx:Script>
+  	import mx.messaging.messages.AsyncMessage;
+      
+  	private var _whiteboardId:String;
     
-	import mx.messaging.messages.AsyncMessage;
-	import mx.controls.Alert;
-    
-    
-    private var _whiteboardId:String;
-    
-    public function set whiteboardId(whiteboardId:String):void
+    public function get whiteboardId():String
     {
-        a.selectedIndex = 1;
-        _whiteboardId = whiteboardId;
+      return _whiteboardId;
     }
-    
-	[Bindable]
-	public function get whiteboardId():String
-	{
-	    return _whiteboardId;
-	}
-	  
-	private function createWhiteboard():void
-	{
-		cr.token = con.whiteboardServiceRemoteObject.createWhiteboard(whiteboardName.text, userDisplayName.text);
-	}
-	
-	private function connectToWhiteboard():void
-	{
-		cr.token = con.whiteboardServiceRemoteObject.connectToWhiteboard(whiteboardPassword.text, userDisplayName.text);
-	}
+    public function set whiteboardId(_whiteboardId:String):void
+    {
+      getWhiteboardNameCallResponder.token = con.whiteboardServiceRemoteObject.getWhiteboardNameFromId(_whiteboardId);
+      this._whiteboardId = _whiteboardId;
+    }
+      	  
+  	private function enterWhiteboard():void
+  	{
+  		// todo: run validator
+  		
+      enterWhiteboardCallResponder.token = con.whiteboardServiceRemoteObject.enterWhiteboard(whiteboardName.text, userDisplayName.text, whiteboardId);
+  	}
   </fx:Script>
   
   <fx:Declarations>
-	<whiteboard:ConnectionHandler id="con"/>
-	<s:CallResponder id="cr">
-		<s:result>
-			Model.getInstance().attendee = event.result as AttendeeDTO;
-			con.attendeeListChangeProducer.subtopic = whiteboardId;
-			con.attendeeListChangeProducer.send(new AsyncMessage());
-			dispatchEvent(new WhiteboardEvent("whiteboardSelected", Model.getInstance().attendee.whiteboard));
-		</s:result>
-	</s:CallResponder>
+  	<whiteboard:ConnectionHandler id="con">
+      <whiteboard:entryRequestMessage>
+        // if we get a message here we expect it's body to just contain the whiteboardId
+        if (event.message.body is String)
+        {
+          _whiteboardId = event.message.body as String;
+          enterWhiteboard();
+        }
+      </whiteboard:entryRequestMessage>
+    </whiteboard:ConnectionHandler>
+  	<s:CallResponder id="enterWhiteboardCallResponder">
+  		<s:result>
+        Model.getInstance().attendee = event.result as AttendeeDTO;
+  			if (Model.getInstance().attendee.whiteboard != null)
+        {
+  			  // we are in
+          con.attendeeListChangeProducer.subtopic = Model.getInstance().attendee.whiteboard.id;
+          con.attendeeListChangeProducer.send(new AsyncMessage());
+          dispatchEvent(new WhiteboardEvent("whiteboardSelected", Model.getInstance().attendee.whiteboard));
+        
+          // reset this view for exit
+          pendingLayer.visible = false;
+          _whiteboardId = null;
+  			}
+        else
+        {
+          // pending request
+          pendingLayer.visible = true;
+        
+          con.entryRequestConsumer.subtopic = Model.getInstance().attendee.id;
+          con.entryRequestConsumer.subscribe();
+        }
+  		</s:result>
+  	</s:CallResponder>
+    <s:CallResponder id="getWhiteboardNameCallResponder">
+      <s:result>
+        whiteboardName.text = event.result as String;
+      </s:result>
+    </s:CallResponder>
   </fx:Declarations>
   
-  <s:layout>
-    <s:VerticalLayout gap="10"/>
-  </s:layout>
-  
-    <mx:FormItem label="Your Display Name" required="true" paddingBottom="10" paddingLeft="10" paddingRight="10" paddingTop="10">
-      <s:TextInput id="userDisplayName"/>
-    </mx:FormItem>
+  <s:Form>   
     
-    <mx:Accordion id="a" width="100%" height="100%" borderStyle="none">
-      <mx:VBox label="Create new Whiteboard" paddingBottom="10" paddingLeft="10" paddingRight="10" paddingTop="10" width="100%" height="100%">
-        <mx:FormItem label="Name" width="100%">
-          <s:TextInput id="whiteboardName" width="100%">
-            <s:enter>
-				createWhiteboard();
-            </s:enter>
-          </s:TextInput>
-        </mx:FormItem>
-        
-        <s:Button label="Create Whiteboard">
-          <s:click>
-			  createWhiteboard();
-          </s:click>
-        </s:Button>
-      </mx:VBox>
-      <mx:VBox label="Enter an existing whiteboard" paddingBottom="10" paddingLeft="10" paddingRight="10" paddingTop="10" width="100%" height="100%">
-        <mx:FormItem label="Password" width="100%">
-          <s:TextInput id="whiteboardPassword" width="100%" text="{whiteboardId}">
-            <s:enter>
-				connectToWhiteboard();
-            </s:enter>
-          </s:TextInput>
-        </mx:FormItem>
-        
-        <s:Button label="Enter Whiteboard">
-          <s:click>
-			  connectToWhiteboard();
-          </s:click>
-        </s:Button>
-      </mx:VBox>
-    </mx:Accordion>
+    <s:layout>
+      <s:FormLayout paddingBottom="20" paddingLeft="20" paddingRight="20" paddingTop="20"/>
+    </s:layout>
+    
+  	<s:FormItem label="Your Display Name" required="true">
+  	  <s:TextInput id="userDisplayName"/>
+  	</s:FormItem>
+  	
+  	<s:FormItem label="Whiteboard Name" width="100%" required="true">
+  	  <s:TextInput id="whiteboardName">
+  	    <s:enter>
+  			  enterWhiteboard();
+  	    </s:enter>
+  	  </s:TextInput>
+  	</s:FormItem>
+  	
+    <s:Group width="100%">
+      <s:Button label="Enter Whiteboard" horizontalCenter="0">
+        <s:click>
+          enterWhiteboard();
+        </s:click>
+      </s:Button>  
+    </s:Group>
+    
+  </s:Form>
+  
+  <s:Group id="pendingLayer" visible="false" left="15" right="15" top="15" bottom="15">
+    <s:Rect width="100%" height="100%">
+      <s:fill>
+        <s:SolidColor color="#ffffff"/>
+      </s:fill>
+    </s:Rect>
+    <s:Label text="Your request to enter the &quot;{whiteboardName.text}&quot; whiteboard is pending approval..." maxDisplayedLines="-1" maxWidth="{pendingLayer.width}" horizontalCenter="0" verticalCenter="0"/>
+  </s:Group>
   
 </s:Panel>

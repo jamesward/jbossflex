@@ -92,7 +92,5 @@ public class Draw
   public void setVersion(int version) {
 	this.version = version;
   }
-  
-  
 
 }

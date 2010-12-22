@@ -35,13 +35,16 @@
       {
         this._whiteboard = _whiteboard;
         
-		getWhiteboardCR.token = con.whiteboardServiceRemoteObject.getWhiteboard(whiteboard.id);
+		    getWhiteboardCR.token = con.whiteboardServiceRemoteObject.getWhiteboard(whiteboard.id);
         
         con.attendeeListChangeConsumer.subtopic = whiteboard.id;
-		con.attendeeListChangeConsumer.subscribe();
+		    con.attendeeListChangeConsumer.subscribe();
         
         con.whiteboardDrawingConsumer.subtopic = whiteboard.id;
-		con.whiteboardDrawingConsumer.subscribe();
+		    con.whiteboardDrawingConsumer.subscribe();
+        
+        con.entryRequestConsumer.subtopic = whiteboard.id;
+        con.entryRequestConsumer.subscribe();
         
         con.whiteboardDrawingProducer.subtopic = whiteboard.id;
       }
@@ -72,25 +75,42 @@
 			}
 			event.stopImmediatePropagation();
 		</whiteboard:whiteboardDrawingMessage>
+    <whiteboard:entryRequestMessage>
+      Model.getInstance().pendingEntryRequests.addItem(event.message.body as EntryRequestDTO);
+    </whiteboard:entryRequestMessage>
 	</whiteboard:ConnectionHandler>
 	  
 	<s:CallResponder id="getWhiteboardCR">
 		<s:result>
 			_whiteboard = event.result as WhiteboardDTO;
 			l.dataProvider = whiteboard.attendeeNames;
-			
+      
 			drawingArea.erase();
 			
 			for each (var draw:DrawDTO in whiteboard.draws)
 			{
 				drawingArea.doDraw(draw);
 			}
+      
+      
+      // this is really nasty - the data for pending entryrequests should be on the whiteboard
+      // but it's not so we just use the attendee name to remove the ones that aren't pending anymore
+      for each (var name:String in whiteboard.attendeeNames)
+      {
+        for each (var pendingEntryRequest:EntryRequestDTO in Model.getInstance().pendingEntryRequests)
+        {
+          if (pendingEntryRequest.attendeeName == name)
+          {
+            Model.getInstance().pendingEntryRequests.removeItemAt(Model.getInstance().pendingEntryRequests.getItemIndex(pendingEntryRequest));
+          }
+        }
+      }
 		</s:result>
 	</s:CallResponder>
 	  
 	<s:CallResponder id="exitCR">
-	    <s:result>
-		    con.attendeeListChangeProducer.send(new AsyncMessage());
+	  <s:result>
+		  con.attendeeListChangeProducer.send(new AsyncMessage());
 			dispatchEvent(new Event('exit'));
 		</s:result>
 	</s:CallResponder>
@@ -100,7 +120,7 @@
     <s:VerticalLayout gap="0"/>
   </s:layout>
   
-  <s:Group id="navBar" width="100%" height="50">
+  <s:Group id="navBar" width="100%" minHeight="50">
     <s:Rect width="100%" height="100%">
       <s:fill>
         <s:LinearGradient rotation="90">
@@ -112,16 +132,13 @@
     
     <s:Label text="Whiteboard: {whiteboard.name}" fontSize="24" fontWeight="bold" top="10" left="10"/>
     
-    <s:Button label="Share" top="10" right="100">
-      <s:click>
-        Alert.show("Send the other attendees the following password:\n" + whiteboard.id, "Share this Whiteboard");
-      </s:click>
-    </s:Button>
-    
-    <s:Button label="Exit" top="10" right="10">
+    <s:Button label="Exit" top="10" right="10" bottom="10">
       <s:click>
         con.attendeeListChangeConsumer.unsubscribe();
-		exitCR.token = con.whiteboardServiceRemoteObject.disconnectFromWhiteboard(Model.getInstance().attendee);
+        con.whiteboardDrawingConsumer.unsubscribe();
+        con.entryRequestConsumer.unsubscribe();
+        
+		    exitCR.token = con.whiteboardServiceRemoteObject.disconnectFromWhiteboard(Model.getInstance().attendee);
       </s:click>
     </s:Button>
   </s:Group>
@@ -146,7 +163,7 @@
         <mx:ColorPicker change="drawingArea.drawColor = event.target.selectedColor"/>
         <s:Button label="Erase">
           <s:click>
-			con.whiteboardDrawingProducer.send(new AsyncMessage({command: 'erase', clientId: con.whiteboardDrawingConsumer.clientId}));
+			      con.whiteboardDrawingProducer.send(new AsyncMessage({command: 'erase', clientId: con.whiteboardDrawingConsumer.clientId}));
             drawingArea.erase();
           </s:click>
         </s:Button>
@@ -156,6 +173,42 @@
         
         <s:Label text="Attendees"/>
         <s:List id="l" width="100%"/>
+        
+        <s:Label text="Pending Attendees" visible="{Model.getInstance().pendingEntryRequests.length != 0}" includeInLayout="{Model.getInstance().pendingEntryRequests.length != 0}"/>
+        <s:Group width="100%" visible="{Model.getInstance().pendingEntryRequests.length != 0}" includeInLayout="{Model.getInstance().pendingEntryRequests.length != 0}">
+          
+          <s:Rect width="100%" height="100%">
+            <s:stroke>
+              <s:SolidColorStroke color="#696969"/>
+            </s:stroke>
+            <s:fill>
+              <s:SolidColor color="#ffffff"/>
+            </s:fill>
+          </s:Rect>
+          
+          <s:DataGroup dataProvider="{Model.getInstance().pendingEntryRequests}" width="100%" >
+            <s:layout>
+              <s:VerticalLayout/>
+            </s:layout>
+            <s:itemRenderer>
+              <fx:Component>
+                <s:ItemRenderer width="100%" autoDrawBackground="false">
+                  <fx:Script>
+                      import flashx.textLayout.formats.TextDecoration;
+                  </fx:Script>
+                  <s:Label text="Let {data.attendeeName} in" paddingBottom="4" paddingTop="4" paddingLeft="4" paddingRight="4"
+                           mouseOver="event.currentTarget.setStyle('textDecoration', TextDecoration.UNDERLINE)"
+                           mouseOut="event.currentTarget.setStyle('textDecoration', TextDecoration.NONE)">
+                    <s:click>
+                      Connection.getInstance().entryRequestServiceRemoteObject.approveEntryRequest(data as EntryRequestDTO);
+                    </s:click>
+                  </s:Label>
+                </s:ItemRenderer>
+              </fx:Component>
+            </s:itemRenderer>
+          </s:DataGroup>
+          
+        </s:Group>
 
       </s:Group>
       

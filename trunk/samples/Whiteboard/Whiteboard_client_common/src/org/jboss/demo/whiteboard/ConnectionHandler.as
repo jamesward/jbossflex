@@ -18,10 +18,14 @@ package org.jboss.demo.whiteboard
 		private function handleReady(event:Event=null):void
 		{
 			this.attendeeListChangeConsumer = connection.attendeeListChangeConsumer;
-			this.attendeeListChangeProducer = connection.attendeeListChangeProducer;
 			this.whiteboardDrawingConsumer = connection.whiteboardDrawingConsumer;
+      this.entryRequestConsumer = connection.entryRequestConsumer;
+      
+      this.attendeeListChangeProducer = connection.attendeeListChangeProducer;
 			this.whiteboardDrawingProducer = connection.whiteboardDrawingProducer;
-			this.whiteboardServiceRemoteObject = connection.whiteboardServiceRemoteObject;
+			
+      this.whiteboardServiceRemoteObject = connection.whiteboardServiceRemoteObject;
+      this.entryRequestServiceRemoteObject = connection.entryRequestServiceRemoteObject;
 		}
 		
 		override public function addEventListener(type:String, listener:Function, useCapture:Boolean=false, priority:int=0, useWeakReference:Boolean=false):void

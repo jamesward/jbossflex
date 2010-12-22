@@ -10,7 +10,14 @@
         <channel ref="my-amf"/>
     </default-channels>
     
-    <destination id="WhiteboardService">
+    <destination id="entryRequestService">
+        <properties>
+            <factory>ejb3</factory>
+            <source>Whiteboard_ear/EntryRequestService/local</source>
+        </properties>
+    </destination>
+    
+    <destination id="whiteboardService">
         <properties>
             <factory>ejb3</factory>
             <source>Whiteboard_ear/WhiteboardService/local</source>
