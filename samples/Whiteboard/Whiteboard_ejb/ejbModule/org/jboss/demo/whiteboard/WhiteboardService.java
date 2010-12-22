@@ -3,10 +3,12 @@ package org.jboss.demo.whiteboard;
 import java.util.ArrayList;
 import java.util.Iterator;
 
+import javax.ejb.EJB;
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
 import javax.persistence.PersistenceContext;
+
 
 /**
  * Session Bean implementation class WhiteboardService
@@ -14,52 +16,46 @@ import javax.persistence.PersistenceContext;
 @Stateless
 //@SecurityDomain("whiteboard")
 public class WhiteboardService implements WhiteboardServiceLocal {
+	
 	@PersistenceContext
 	private EntityManager entityManager;
+	
+	@EJB
+	private EntryRequestServiceLocal entryRequest;
 
-	//@RolesAllowed( { "host" })
-	public void assignDrawer(Attendee attendee) {
-
-	}
-
-	//@RolesAllowed( { "host" })
-	public AttendeeDTO createWhiteboard(String whiteboardName,
-			String userDisplayName) {
-		Whiteboard whiteboard = new Whiteboard();
-		whiteboard.setName(whiteboardName);
-
+	public AttendeeDTO enterWhiteboard(String whiteboardName, String userDisplayName, String whiteboardId) {
 		Attendee attendee = new Attendee(userDisplayName);
-		whiteboard.addAttendee(attendee);
-
-		// Persisting the whiteboard instead of the attendee and the whiteboard.
-		// Added cascade to getAttendees method on whiteboard
-		entityManager.persist(whiteboard);
-
-		return new AttendeeDTO(attendee);
-	}
-
-	//@RolesAllowed( { "attendee" })
-	public AttendeeDTO connectToWhiteboard(String whiteboardId,
-			String userDisplayName) {
-		Whiteboard whiteboard;
-
-		try {
-			whiteboard = getWhiteboardFromId(whiteboardId);
-		} catch (NoResultException e) {
-			return createWhiteboard("new whiteboard", userDisplayName);
-		}
-
-		Attendee attendee = new Attendee(userDisplayName);
-		attendee.setWhiteboard(whiteboard);
-
 		entityManager.persist(attendee);
-
+		
+		Whiteboard whiteboard;
+		if (whiteboardId == null || whiteboardId.length() == 0) {
+			whiteboard = getWhiteboardFromName(whiteboardName);
+			
+			if (whiteboard != null)	{
+				entryRequest.createEntryRequest(attendee, whiteboard);
+				
+				return new AttendeeDTO(attendee);
+			}
+		}
+		else {
+			whiteboard = getWhiteboardFromId(whiteboardId);
+		}
+		
+		if (whiteboard == null)
+		{
+			// whiteboard doesn't exist so create one
+			whiteboard = new Whiteboard();
+			whiteboard.setName(whiteboardName);
+			entityManager.persist(whiteboard);
+		}
+		
+		attendee.setWhiteboard(whiteboard);
+		
 		return new AttendeeDTO(attendee);
 	}
 
 	public void disconnectFromWhiteboard(AttendeeDTO attendee) {
-		entityManager.remove(entityManager.find(Attendee.class, attendee
-				.getId()));
+		entityManager.remove(entityManager.find(Attendee.class, attendee.getId()));
 	}
 
 	//@RolesAllowed( { "host,attendee" })
@@ -94,28 +90,46 @@ public class WhiteboardService implements WhiteboardServiceLocal {
 
 		whiteboard.setDraws(new ArrayList<Draw>());
 	}
+	
+	public String getWhiteboardNameFromId(String whiteboardId)
+	{
+		Whiteboard whiteboard = getWhiteboardFromId(whiteboardId);
+		if (whiteboard != null)
+		{
+			return whiteboard.getName();
+		}
+		
+		return null;
+	}
+	
 
 	private Whiteboard getWhiteboardFromId(String whiteboardId) {
-		Whiteboard whiteboard = (Whiteboard) entityManager.createQuery(
-				"from Whiteboard where id = :whiteboardId").setParameter(
-				"whiteboardId", whiteboardId).getSingleResult();
-
-		return whiteboard;
+		try {
+			Whiteboard whiteboard = (Whiteboard) entityManager.createQuery(
+					"from Whiteboard where id = :whiteboardId").setParameter(
+					"whiteboardId", whiteboardId).getSingleResult();
+	
+			return whiteboard;
+		}
+		catch (NoResultException e) {
+			
+		}
+		
+		return null;
 	}
-
-	public Attendee addAttendee(String whiteboardId, String displayName, String password) {
-		Whiteboard whiteboard = getWhiteboardFromId(whiteboardId);
-
-		Attendee attendee =whiteboard.addAttendee(displayName);
-		User user = new User();
-		user.setUsername(displayName);
-		user.setPasswd(password);
-		  
-		UserRole userRole = new UserRole("attendee");
-		user.addUserRole(userRole);
-		attendee.setUser(user);
-		entityManager.merge(whiteboard);
-		return attendee;
+	
+	private Whiteboard getWhiteboardFromName(String whiteboardName) {
+		try {
+			Whiteboard whiteboard = (Whiteboard) entityManager.createQuery(
+				"from Whiteboard where name = :whiteboardName").setParameter(
+				"whiteboardName", whiteboardName).getSingleResult();
+			return whiteboard;
+		}
+		catch (NoResultException e) {
+			
+		}
+		
+		return null;
 	}
 
 }

@@ -9,14 +9,17 @@ public class AttendeeDTO
   
   public AttendeeDTO()
   {
-    
+    super();
   }
   
   public AttendeeDTO(Attendee attendee)
   {
     id = attendee.getId();
     displayName = attendee.getDisplayName();
-    whiteboard = new WhiteboardDTO(attendee.getWhiteboard());
+    if (attendee.getWhiteboard() != null)
+    {
+    	whiteboard = new WhiteboardDTO(attendee.getWhiteboard());
+    }
   }
   
   public String getId()

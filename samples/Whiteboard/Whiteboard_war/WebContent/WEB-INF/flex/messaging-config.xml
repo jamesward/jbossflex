@@ -1,24 +1,32 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<service id="message-service" 
-    class="flex.messaging.services.MessageService">
+<service id="message-service" class="flex.messaging.services.MessageService">
 
     <adapters>
         <adapter-definition id="actionscript" class="flex.messaging.services.messaging.adapters.ActionScriptAdapter" default="true" />
         <adapter-definition id="whiteboardDrawingMessagingAdapter" class="org.jboss.demo.whiteboard.WhiteboardDrawingMessagingAdapter"/>
-        <!-- <adapter-definition id="jms" class="flex.messaging.services.messaging.adapters.JMSAdapter"/> -->
     </adapters>
 
     <default-channels>
-    		<channel ref="my-streaming-amf"/>
+    	<channel ref="my-streaming-amf"/>
         <channel ref="my-polling-amf"/>
     </default-channels>
+    
+    <destination id="entryRequest">
+        <properties>
+            <server>
+                <allow-subtopics>true</allow-subtopics>
+                <subtopic-separator>.</subtopic-separator>
+                <disallow-wildcard-subtopics>true</disallow-wildcard-subtopics>
+            </server>
+      </properties>
+    </destination>
     
     <destination id="attendeeListChange">
     	<properties>
             <server>
                 <allow-subtopics>true</allow-subtopics>
                 <subtopic-separator>.</subtopic-separator>
-                <disallow-wildcard-subtopics>false</disallow-wildcard-subtopics>
+                <disallow-wildcard-subtopics>true</disallow-wildcard-subtopics>
             </server>
       </properties>
     </destination>
@@ -29,7 +37,7 @@
             <server>
                 <allow-subtopics>true</allow-subtopics>
                 <subtopic-separator>.</subtopic-separator>
-                <disallow-wildcard-subtopics>false</disallow-wildcard-subtopics>
+                <disallow-wildcard-subtopics>true</disallow-wildcard-subtopics>
             </server>
       </properties>
     </destination>

@@ -4,7 +4,9 @@
 			   xmlns:whiteboard="org.jboss.demo.whiteboard.*">
 	
 	<fx:Script>
-		import mx.events.BrowserChangeEvent;
+    import org.jboss.demo.whiteboard.Connection;
+
+    import mx.events.BrowserChangeEvent;
 		import mx.managers.BrowserManager;
 		import mx.messaging.messages.AsyncMessage;
 		import mx.utils.URLUtil;
