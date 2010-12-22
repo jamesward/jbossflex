@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009" 
+     xmlns:s="library://ns.adobe.com/flex/spark"
+     xmlns:whiteboard="org.jboss.demo.whiteboard.*">
+  
+  <s:states>
+    <s:State name="default"/>
+    <s:State name="connectedToWhiteboard"/>
+  </s:states>
+  
+  <whiteboard:CreateOrEnterWhiteboard id="ce" includeIn="default" horizontalCenter="0" verticalCenter="0">
+    <whiteboard:whiteboardSelected>
+      currentState = "connectedToWhiteboard";
+      drawingBoard.whiteboard = event.whiteboard;
+    </whiteboard:whiteboardSelected>
+  </whiteboard:CreateOrEnterWhiteboard>
+  
+  <whiteboard:DrawingBoard id="drawingBoard" includeIn="connectedToWhiteboard" width="100%" height="100%">
+    <whiteboard:exit>
+      currentState = 'default';
+    </whiteboard:exit>
+  </whiteboard:DrawingBoard>
+  
+</s:Application>
