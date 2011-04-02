@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<service id="remoting-service" 
+    class="flex.messaging.services.RemotingService">
+
+    <adapters>
+        <adapter-definition id="java-object" class="flex.messaging.services.remoting.adapters.JavaAdapter" default="true"/>
+    </adapters>
+
+    <default-channels>
+        <channel ref="my-amf"/>
+    </default-channels>
+    
+    <destination id="widgetService">
+        <properties>
+            <factory>ejb3</factory>
+            <source>ordermgr_ear/WidgetService/no-interface</source>
+        </properties>
+    </destination>
+    
+    <destination id="widgetOrderService">
+        <properties>
+            <factory>ejb3</factory>
+            <source>ordermgr_ear/WidgetOrderService/no-interface</source>
+        </properties>
+    </destination>
+
+</service>

@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009" 
+			   xmlns:s="library://ns.adobe.com/flex/spark"
+			   xmlns:ordermgr="org.jboss.samples.ordermgr.*">
+
+	<fx:Script>
+		import org.jboss.samples.ordermgr.Model;
+		import mx.managers.PopUpManager;
+		import mx.collections.IList;
+		import mx.controls.Alert;
+		import mx.rpc.events.FaultEvent;
+		
+		import org.jboss.samples.ordermgr.Widget;
+		import org.jboss.samples.ordermgr.WidgetOrder;
+		
+		private function displayFault(event:FaultEvent):void
+		{
+			Alert.show(event.toString(), "Error");
+		}
+		
+		private function getTotalOrderPrice(item:Object, column:GridColumn):String
+		{
+			return currencyFormatter.format((item as WidgetOrder).quantity * (item as WidgetOrder).widget.price);
+		}
+		
+		public function getAllWidgetOrders():void
+		{
+			allWidgetOrdersBusyIndicator.visible = true;
+			getAllWidgetOrdersResponder.token = widgetOrderServiceRemoteObject.getAllWidgetOrders();
+		}
+	</fx:Script>
+	
+	<fx:Declarations>
+		<s:RemoteObject id="widgetServiceRemoteObject" destination="widgetService" endpoint="http://localhost:8080/ordermgr/messagebroker/amf"/>
+		
+		<s:CallResponder id="getAllWidgetsResponder">
+			<s:result>
+				Model.instance.allWidgets = event.result as IList;
+			</s:result>
+			<s:fault>
+				displayFault(event);
+			</s:fault>
+		</s:CallResponder>
+		
+		<s:RemoteObject id="widgetOrderServiceRemoteObject" destination="widgetOrderService" endpoint="http://192.168.0.9:8080/ordermgr/messagebroker/amf"/>
+		<s:CallResponder id="getAllWidgetOrdersResponder">
+			<s:result>
+				dataGrid.dataProvider = event.result as IList;
+				
+				allWidgetOrdersBusyIndicator.visible = false;
+			</s:result>
+			<s:fault>
+				displayFault(event);
+			</s:fault>
+		</s:CallResponder>
+		<s:CurrencyFormatter id="currencyFormatter" useCurrencySymbol="true"/>
+		<s:DateTimeFormatter id="dateTimeFormatter"/>
+	</fx:Declarations>
+	
+	<s:applicationComplete>
+		getAllWidgetsResponder.token = widgetServiceRemoteObject.getAllWidgets();
+		getAllWidgetOrders();
+	</s:applicationComplete>
+	
+	<s:layout>
+		<s:HorizontalLayout paddingBottom="10" paddingLeft="10" paddingRight="10" paddingTop="10" gap="10"/>
+	</s:layout>
+	
+	<s:Panel title="All Orders" width="100%" height="100%">
+		
+		<s:VGroup width="100%" height="100%">			
+			<s:DataGrid id="dataGrid" width="100%" height="100%">
+				<s:columns>
+					<s:ArrayList>				
+						<s:GridColumn headerText="Date" dataField="orderDate" formatter="{dateTimeFormatter}"/>
+						<s:GridColumn headerText="Quantity" dataField="quantity"/>
+						<s:GridColumn headerText="Widget Name" dataField="widget.name"/>
+						<s:GridColumn headerText="Widget Price" dataField="widget.price" formatter="{currencyFormatter}"/>
+						<s:GridColumn headerText="Total Order Price" labelFunction="getTotalOrderPrice" formatter="{currencyFormatter}"/>
+					</s:ArrayList>
+				</s:columns>
+			</s:DataGrid>
+			<ordermgr:WidgetOrderChart width="100%" height="300"/>
+		</s:VGroup>
+		
+		<s:BusyIndicator id="allWidgetOrdersBusyIndicator" visible="false" top="-30" horizontalCenter="0"/>
+		
+		<s:Button label="New Order" top="-26" right="10">
+			<s:click>
+				PopUpManager.centerPopUp(PopUpManager.createPopUp(this, NewWidgetOrderForm, true));
+			</s:click>
+		</s:Button>
+	</s:Panel>
+
+</s:Application>

@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:mx="library://ns.adobe.com/flex/mx">
+	
+	<fx:Script>
+		import mx.charts.chartClasses.IAxis;
+		
+		import org.jboss.samples.ordermgr.Widget;
+		import org.jboss.samples.ordermgr.WidgetOrder;
+		
+		private var orderSummary:Object;
+		
+		private function updateOrderSummary():void
+		{
+			orderSummary = new Object();
+			
+			for each (var widgetOrder:WidgetOrder in orders.source)
+			{
+				if (orderSummary[widgetOrder.widget.id] == null)
+				{
+					orderSummary[widgetOrder.widget.id] = new Object();
+					orderSummary[widgetOrder.widget.id].name = widgetOrder.widget.name;
+					orderSummary[widgetOrder.widget.id].total = 0;
+				}
+				
+				orderSummary[widgetOrder.widget.id].total += (widgetOrder.quantity * widgetOrder.widget.price);
+			}
+			
+			cc.dataProvider = new ArrayCollection();
+			for each (var summary:Object in orderSummary)
+			{
+				cc.dataProvider.addItem(summary);
+			}
+		}
+		
+		private function formatTotal(labelValue:Object, previousValue:Object, axis:IAxis):String
+		{
+			return currencyFormatter.format(labelValue);
+		}
+	</fx:Script>
+	
+	<fx:Declarations>
+		<s:RemoteObject id="widgetOrderServiceRemoteObject" destination="widgetOrderService" endpoint="http://localhost:8080/ordermgr/messagebroker/amf"/>
+		<s:CallResponder id="getAllWidgetOrdersResponder">
+			<s:result>
+				orders = event.result as ArrayCollection;
+				updateOrderSummary();
+			</s:result>
+		</s:CallResponder>
+		<s:Consumer id="cons" destination="orderUpdates">
+			<s:channelSet>
+				<s:ChannelSet>					
+					<s:StreamingAMFChannel uri="http://localhost:8080/ordermgr/messagebroker/streamingamf"/>
+				</s:ChannelSet>
+			</s:channelSet>
+			<s:message>
+				orders.addItem(event.message.body as WidgetOrder);
+				updateOrderSummary();
+			</s:message>
+		</s:Consumer>
+		<s:ArrayCollection id="orders"/>
+		<s:CurrencyFormatter id="currencyFormatter" useCurrencySymbol="true"/>
+	</fx:Declarations>
+	
+	<s:creationComplete>
+		cons.subscribe();
+		getAllWidgetOrdersResponder.token = widgetOrderServiceRemoteObject.getAllWidgetOrders();
+	</s:creationComplete>
+	
+	<mx:BarChart id="cc" width="100%" height="100%" fontSize="20">
+		<mx:series>
+			<mx:BarSeries xField="total">
+				<mx:showDataEffect>
+					<mx:SeriesInterpolate/>
+				</mx:showDataEffect>
+			</mx:BarSeries>
+		</mx:series>
+		<mx:horizontalAxis>
+			<mx:LinearAxis labelFunction="formatTotal"/>
+		</mx:horizontalAxis>
+		<mx:verticalAxis>
+			<mx:CategoryAxis categoryField="name"/>
+		</mx:verticalAxis>
+	</mx:BarChart>
+	
+</s:Group>
