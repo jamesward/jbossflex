@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:TitleWindow xmlns:fx="http://ns.adobe.com/mxml/2009" 
+			   xmlns:s="library://ns.adobe.com/flex/spark"
+			   title="Order Some Widgets">
+	
+	<fx:Script>
+		import mx.core.FlexGlobals;
+		import mx.controls.Alert;
+		import mx.managers.PopUpManager;
+		import mx.rpc.events.FaultEvent;
+		
+		import org.jboss.samples.ordermgr.Model;
+		import org.jboss.samples.ordermgr.Widget;
+		import org.jboss.samples.ordermgr.WidgetOrder;
+		
+		private function displayFault(event:FaultEvent):void
+		{
+			Alert.show(event.toString(), "Error");
+		}
+		
+		private function getWidgetLabel(item:Object):String
+		{
+			return (item as Widget).name + "  (" + currencyFormatter.format((item as Widget).price) + ")";
+		}
+	</fx:Script>
+
+	<fx:Declarations>
+		<s:RemoteObject id="widgetOrderServiceRemoteObject" destination="widgetOrderService" endpoint="http://localhost:8080/ordermgr/messagebroker/amf"/>
+		<s:CallResponder id="createWidgetOrderResponder">
+			<s:result>
+				(FlexGlobals.topLevelApplication as Object).getAllWidgetOrders();
+				PopUpManager.removePopUp(this);
+			</s:result>
+			<s:fault>
+				displayFault(event);
+			</s:fault>
+		</s:CallResponder>
+		<s:CurrencyFormatter id="currencyFormatter" useCurrencySymbol="true"/>
+	</fx:Declarations>
+	
+	<s:close>
+		PopUpManager.removePopUp(this);
+	</s:close>
+	
+	<s:Form id="createOrderWidgetForm">
+		<s:FormItem label="Widget">
+			<s:DropDownList id="widget" dataProvider="{Model.instance.allWidgets}" labelFunction="getWidgetLabel"/>
+		</s:FormItem>
+		<s:FormItem label="Quantity">
+			<s:NumericStepper id="quantity" minimum="1"/>
+		</s:FormItem>
+		<s:FormItem label="Total Price">
+			<s:Label text="{currencyFormatter.format((widget.selectedItem as Widget).price * quantity.value)}"/>
+		</s:FormItem>
+		<s:Group width="100%">
+			<s:Button label="Create Order" horizontalCenter="0">
+				<s:click>
+					createOrderWidgetForm.enabled = false;
+					createWidgetOrderBusyIndicator.visible = true;
+					
+					var widgetOrder:WidgetOrder = new WidgetOrder();
+					widgetOrder.widget = widget.selectedItem;
+					widgetOrder.quantity = quantity.value;
+					createWidgetOrderResponder.token = widgetOrderServiceRemoteObject.createWidgetOrder(widgetOrder);
+				</s:click>
+			</s:Button>
+		</s:Group>
+	</s:Form>
+	
+	<s:BusyIndicator id="createWidgetOrderBusyIndicator" visible="false" bottom="10" left="10"/>
+
+</s:TitleWindow>

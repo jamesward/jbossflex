@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:WindowedApplication xmlns:fx="http://ns.adobe.com/mxml/2009" 
+					   xmlns:s="library://ns.adobe.com/flex/spark">
+	<fx:Script>
+		import flash.globalization.CurrencyFormatter;
+		
+		import mx.collections.IList;
+		import mx.controls.Alert;
+		import mx.rpc.events.FaultEvent;
+		
+		import org.jboss.samples.ordermgr.Model;
+		import org.jboss.samples.ordermgr.Widget;
+		import org.jboss.samples.ordermgr.WidgetManager;
+		
+		private function resetForm():void
+		{
+			widgetName.text = "";
+			widgetPrice.value = 0;
+		}
+		
+		private function parseCurrency(value:String):Number
+		{
+			var currencyFormatter:flash.globalization.CurrencyFormatter = new flash.globalization.CurrencyFormatter(getStyle('locale'));
+			return new Number(currencyFormatter.parse(value).value);
+		}
+	</fx:Script>
+	
+	<fx:Declarations>
+		<s:CurrencyFormatter id="currencyFormatter" useCurrencySymbol="true"/>
+	</fx:Declarations>
+	
+	<s:applicationComplete>
+		WidgetManager.instance.getAllWidgets();
+	</s:applicationComplete>
+	
+	<s:layout>
+		<s:HorizontalLayout paddingBottom="10" paddingLeft="10" paddingRight="10" paddingTop="10" gap="10"/>
+	</s:layout>
+	
+	<s:Panel title="All Widgets" width="100%" height="100%">
+		<s:DataGrid dataProvider="{Model.instance.allWidgets}" width="100%" height="100%" editable="true">
+			<s:columns>
+				<s:ArrayList>				
+					<s:GridColumn headerText="Name" dataField="name"/>
+					<s:GridColumn headerText="Price" formatter="{currencyFormatter}" dataField="price"/>
+				</s:ArrayList>
+			</s:columns>
+			<s:gridItemEditorSessionSave>
+				WidgetManager.instance.updateWidget(event.currentTarget.dataProvider.getItemAt(event.rowIndex) as Widget);
+			</s:gridItemEditorSessionSave>
+		</s:DataGrid>
+	
+		<s:BusyIndicator id="allWidgetsBusyIndicator" visible="{Model.instance.fetchingWidgets}" top="-30" horizontalCenter="0"/>
+	</s:Panel>
+	
+	<s:Panel title="Create new Widget">
+		<s:Form id="createWidgetForm">
+			<s:FormItem label="Name">
+				<s:TextInput id="widgetName"/>
+			</s:FormItem>
+			<s:FormItem label="Price">
+				<s:NumericStepper id="widgetPrice" valueFormatFunction="{currencyFormatter.format}" valueParseFunction="{parseCurrency}" minimum="0" value="1.00" snapInterval="0.01"/>
+			</s:FormItem>
+			<s:Group width="100%">
+				<s:Button label="Create Widget" horizontalCenter="0">
+					<s:click>
+						createWidgetForm.enabled = false;
+						
+						var widget:Widget = new Widget();
+						widget.name = widgetName.text;
+						widget.price = widgetPrice.value;
+						WidgetManager.instance.createWidget(widget);
+					</s:click>
+				</s:Button>
+			</s:Group>
+		</s:Form>
+		<s:BusyIndicator visible="{Model.instance.creatingWidget}" bottom="10" left="10"/>
+	</s:Panel>
+	
+</s:WindowedApplication>

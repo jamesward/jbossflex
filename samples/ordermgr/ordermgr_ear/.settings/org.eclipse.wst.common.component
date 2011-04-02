@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project-modules id="moduleCoreId" project-version="1.5.0">
+    <wb-module deploy-name="ordermgr_ear">
+        <wb-resource deploy-path="/" source-path="/EarContent"/>
+        <dependent-module archiveName="ordermgr_web.war" deploy-path="/" handle="module:/resource/ordermgr_web/ordermgr_web">
+            <dependent-object/>
+            <dependency-type>uses</dependency-type>
+        </dependent-module>
+        <dependent-module archiveName="ordermgr_jpa.jar" deploy-path="/lib" handle="module:/resource/ordermgr_jpa/ordermgr_jpa">
+            <dependency-type>uses</dependency-type>
+        </dependent-module>
+        <dependent-module archiveName="ordermgr_ejb.jar" deploy-path="/" handle="module:/resource/ordermgr_ejb/ordermgr_ejb">
+            <dependent-object/>
+            <dependency-type>uses</dependency-type>
+        </dependent-module>
+    </wb-module>
+</project-modules>
